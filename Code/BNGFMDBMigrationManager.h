@@ -210,7 +210,7 @@
  a migration stored on disk a SQL file. The filename encodes the name and version of the migration. Conformant filenames are
  of the form `[version]_[name].sql`. 
  */
-@interface FMDBFileMigration : NSObject <BNGFMDBMigrating>
+@interface BNGFMDBFileMigration : NSObject <BNGFMDBMigrating>
 
 ///--------------------------------
 /// @name Creating a File Migration

@@ -175,7 +175,7 @@ static FMDatabase *FMDatabaseWithSchemaMigrationsTable()
 - (void)testGettingMigrationByVersion
 {
     BNGFMDBMigrationManager *manager = [BNGFMDBMigrationManager managerWithDatabaseAtPath:FMDBRandomDatabasePath() migrationsBundle:BNGFMDBMigrationsTestBundle()];
-    FMDBFileMigration *migration = [manager migrationForVersion:201406063106474];
+    BNGFMDBFileMigration *migration = [manager migrationForVersion:201406063106474];
     NSString *expectedPath = [BNGFMDBMigrationsTestBundle() pathForResource:@"201406063106474_create_mb-demo-schema" ofType:@"sql"];
     expect(migration.version).to.equal(201406063106474);
     expect(migration.name).to.equal(@"create_mb-demo-schema");
@@ -185,7 +185,7 @@ static FMDatabase *FMDatabaseWithSchemaMigrationsTable()
 - (void)testGettingMigrationByName
 {
     BNGFMDBMigrationManager *manager = [BNGFMDBMigrationManager managerWithDatabaseAtPath:FMDBRandomDatabasePath() migrationsBundle:BNGFMDBMigrationsTestBundle()];
-    FMDBFileMigration *migration = [manager migrationForName:@"create_mb-demo-schema"];
+    BNGFMDBFileMigration *migration = [manager migrationForName:@"create_mb-demo-schema"];
     NSString *expectedPath = [BNGFMDBMigrationsTestBundle() pathForResource:@"201406063106474_create_mb-demo-schema" ofType:@"sql"];
     expect(migration.version).to.equal(201406063106474);
     expect(migration.name).to.equal(@"create_mb-demo-schema");

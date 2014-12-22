@@ -188,7 +188,7 @@ static NSArray *FMDBClassesConformingToProtocol(Protocol *protocol)
     for (NSString *path in migrationPaths) {
         NSString *filename = [path lastPathComponent];
         if ([migrationRegex rangeOfFirstMatchInString:filename options:0 range:NSMakeRange(0, [filename length])].location != NSNotFound) {
-            FMDBFileMigration *migration = [FMDBFileMigration migrationWithPath:path];
+            BNGFMDBFileMigration *migration = [BNGFMDBFileMigration migrationWithPath:path];
             [migrations addObject:migration];
         }
     }
@@ -197,7 +197,7 @@ static NSArray *FMDBClassesConformingToProtocol(Protocol *protocol)
     if (self.dynamicMigrationsEnabled) {
         NSArray *conformingClasses = FMDBClassesConformingToProtocol(@protocol(BNGFMDBMigrating));
         for (Class migrationClass in conformingClasses) {
-            if ([migrationClass isSubclassOfClass:[FMDBFileMigration class]]) continue;
+            if ([migrationClass isSubclassOfClass:[BNGFMDBFileMigration class]]) continue;
             id<BNGFMDBMigrating> migration = [migrationClass new];
             [migrations addObject:migration];
         }
@@ -289,12 +289,12 @@ static BOOL BNGFMDBMigrationScanMetadataFromPath(NSString *path, uint64_t *versi
     return YES;
 }
 
-@interface FMDBFileMigration ()
+@interface BNGFMDBFileMigration ()
 @property (nonatomic, readwrite) NSString *name;
 @property (nonatomic, readwrite) uint64_t version;
 @end
 
-@implementation FMDBFileMigration
+@implementation BNGFMDBFileMigration
 
 + (instancetype)migrationWithPath:(NSString *)path
 {
