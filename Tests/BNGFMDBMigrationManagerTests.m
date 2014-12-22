@@ -1,6 +1,6 @@
 //
-//  FMDBMigrationManagerTests.m
-//  FMDBMigrationManager
+//  BNGFMDBMigrationManagerTests.m
+//  BNGFMDBMigrationManager
 //
 //  Created by Blake Watters on 6/6/14.
 //
@@ -9,7 +9,7 @@
 #import <XCTest/XCTest.h>
 #define EXP_SHORTHAND
 #import "Expecta.h"
-#import "FMDBmigrationManager.h"
+#import "BNGFMDBMigrationManager.h"
 
 static NSString *FMDBApplicationDataDirectory(void)
 {
@@ -43,9 +43,9 @@ static NSString *FMDBRandomDatabasePath()
     return [FMDBApplicationDataDirectory() stringByAppendingPathComponent:[[NSUUID UUID] UUIDString]];
 }
 
-static NSBundle *FMDBMigrationsTestBundle()
+static NSBundle *BNGFMDBMigrationsTestBundle()
 {
-    NSBundle *parentBundle = [NSBundle bundleForClass:NSClassFromString(@"FMDBMigrationManagerTests")];
+    NSBundle *parentBundle = [NSBundle bundleForClass:NSClassFromString(@"BNGFMDBMigrationManagerTests")];
     return [NSBundle bundleWithPath:[parentBundle pathForResource:@"Migrations" ofType:@"bundle"]];
 }
 
@@ -57,7 +57,7 @@ static FMDatabase *FMDatabaseWithSchemaMigrationsTable()
     return database;
 }
 
-@interface FMDBTestObjectMigration : NSObject <FMDBMigrating>
+@interface FMDBTestObjectMigration : NSObject <BNGFMDBMigrating>
 @end
 
 @implementation FMDBTestObjectMigration
@@ -79,10 +79,10 @@ static FMDatabase *FMDatabaseWithSchemaMigrationsTable()
 
 @end
 
-@interface FMDBMigrationManagerTests : XCTestCase
+@interface BNGFMDBMigrationManagerTests : XCTestCase
 @end
 
-@implementation FMDBMigrationManagerTests
+@implementation BNGFMDBMigrationManagerTests
 
 + (void)setUp
 {
@@ -102,7 +102,7 @@ static FMDatabase *FMDatabaseWithSchemaMigrationsTable()
 {
     FMDatabase *database = [FMDatabase databaseWithPath:nil];
     [database open];
-    FMDBMigrationManager *manager = [FMDBMigrationManager managerWithDatabase:database migrationsBundle:FMDBMigrationsTestBundle()];
+    BNGFMDBMigrationManager *manager = [BNGFMDBMigrationManager managerWithDatabase:database migrationsBundle:BNGFMDBMigrationsTestBundle()];
     manager = nil;
     expect(database.goodConnection).to.beTruthy();
 }
@@ -111,7 +111,7 @@ static FMDatabase *FMDatabaseWithSchemaMigrationsTable()
 {
     FMDatabase *database = nil;
     @autoreleasepool { // Ensures dealloc on iOS
-        FMDBMigrationManager *manager = [FMDBMigrationManager managerWithDatabaseAtPath:nil migrationsBundle:FMDBMigrationsTestBundle()];
+        BNGFMDBMigrationManager *manager = [BNGFMDBMigrationManager managerWithDatabaseAtPath:nil migrationsBundle:BNGFMDBMigrationsTestBundle()];
         database = manager.database;
         expect(database.goodConnection).to.beTruthy();
         manager = nil;
@@ -121,7 +121,7 @@ static FMDatabase *FMDatabaseWithSchemaMigrationsTable()
 
 - (void)testHasMigrationTableWhenTableDoesntExist
 {
-    FMDBMigrationManager *manager = [FMDBMigrationManager managerWithDatabaseAtPath:FMDBRandomDatabasePath() migrationsBundle:FMDBMigrationsTestBundle()];
+    BNGFMDBMigrationManager *manager = [BNGFMDBMigrationManager managerWithDatabaseAtPath:FMDBRandomDatabasePath() migrationsBundle:BNGFMDBMigrationsTestBundle()];
     expect(manager.hasMigrationsTable).to.beFalsy();
 }
 
@@ -130,13 +130,13 @@ static FMDatabase *FMDatabaseWithSchemaMigrationsTable()
     FMDatabase *database = FMDatabaseWithSchemaMigrationsTable();
     [database close];
     
-    FMDBMigrationManager *manager = [FMDBMigrationManager managerWithDatabaseAtPath:database.databasePath migrationsBundle:FMDBMigrationsTestBundle()];
+    BNGFMDBMigrationManager *manager = [BNGFMDBMigrationManager managerWithDatabaseAtPath:database.databasePath migrationsBundle:BNGFMDBMigrationsTestBundle()];
     expect(manager.hasMigrationsTable).to.beTruthy();
 }
 
 - (void)testThatNeedsMigrationIsTrueIfMigrationsTableDoesNotExist
 {
-    FMDBMigrationManager *manager = [FMDBMigrationManager managerWithDatabaseAtPath:nil migrationsBundle:FMDBMigrationsTestBundle()];
+    BNGFMDBMigrationManager *manager = [BNGFMDBMigrationManager managerWithDatabaseAtPath:nil migrationsBundle:BNGFMDBMigrationsTestBundle()];
     expect(manager.needsMigration).to.beTruthy();
 }
 
@@ -147,7 +147,7 @@ static FMDatabase *FMDatabaseWithSchemaMigrationsTable()
     [database executeUpdate:@"INSERT INTO schema_migrations(version) VALUES (?)", @201406063548463];
     [database close];
     
-    FMDBMigrationManager *manager = [FMDBMigrationManager managerWithDatabaseAtPath:database.databasePath migrationsBundle:FMDBMigrationsTestBundle()];
+    BNGFMDBMigrationManager *manager = [BNGFMDBMigrationManager managerWithDatabaseAtPath:database.databasePath migrationsBundle:BNGFMDBMigrationsTestBundle()];
     expect(manager.needsMigration).to.beTruthy();
 }
 
@@ -159,13 +159,13 @@ static FMDatabase *FMDatabaseWithSchemaMigrationsTable()
     [database executeUpdate:@"INSERT INTO schema_migrations(version) VALUES (?)", @201499000000000];
     [database close];
     
-    FMDBMigrationManager *manager = [FMDBMigrationManager managerWithDatabaseAtPath:database.databasePath migrationsBundle:FMDBMigrationsTestBundle()];
+    BNGFMDBMigrationManager *manager = [BNGFMDBMigrationManager managerWithDatabaseAtPath:database.databasePath migrationsBundle:BNGFMDBMigrationsTestBundle()];
     expect(manager.needsMigration).to.beFalsy();
 }
 
 - (void)testGettingMigrations
 {
-    FMDBMigrationManager *manager = [FMDBMigrationManager managerWithDatabaseAtPath:FMDBRandomDatabasePath() migrationsBundle:FMDBMigrationsTestBundle()];
+    BNGFMDBMigrationManager *manager = [BNGFMDBMigrationManager managerWithDatabaseAtPath:FMDBRandomDatabasePath() migrationsBundle:BNGFMDBMigrationsTestBundle()];
     NSArray *migrations = manager.migrations;
     expect(migrations).to.haveCountOf(3);
     expect([migrations valueForKey:@"name"]).to.equal(@[@"create_mb-demo-schema", @"create_add_second_table", @"My Object Migration"]);
@@ -174,9 +174,9 @@ static FMDatabase *FMDatabaseWithSchemaMigrationsTable()
 
 - (void)testGettingMigrationByVersion
 {
-    FMDBMigrationManager *manager = [FMDBMigrationManager managerWithDatabaseAtPath:FMDBRandomDatabasePath() migrationsBundle:FMDBMigrationsTestBundle()];
+    BNGFMDBMigrationManager *manager = [BNGFMDBMigrationManager managerWithDatabaseAtPath:FMDBRandomDatabasePath() migrationsBundle:BNGFMDBMigrationsTestBundle()];
     FMDBFileMigration *migration = [manager migrationForVersion:201406063106474];
-    NSString *expectedPath = [FMDBMigrationsTestBundle() pathForResource:@"201406063106474_create_mb-demo-schema" ofType:@"sql"];
+    NSString *expectedPath = [BNGFMDBMigrationsTestBundle() pathForResource:@"201406063106474_create_mb-demo-schema" ofType:@"sql"];
     expect(migration.version).to.equal(201406063106474);
     expect(migration.name).to.equal(@"create_mb-demo-schema");
     expect(migration.path).to.equal(expectedPath);
@@ -184,9 +184,9 @@ static FMDatabase *FMDatabaseWithSchemaMigrationsTable()
 
 - (void)testGettingMigrationByName
 {
-    FMDBMigrationManager *manager = [FMDBMigrationManager managerWithDatabaseAtPath:FMDBRandomDatabasePath() migrationsBundle:FMDBMigrationsTestBundle()];
+    BNGFMDBMigrationManager *manager = [BNGFMDBMigrationManager managerWithDatabaseAtPath:FMDBRandomDatabasePath() migrationsBundle:BNGFMDBMigrationsTestBundle()];
     FMDBFileMigration *migration = [manager migrationForName:@"create_mb-demo-schema"];
-    NSString *expectedPath = [FMDBMigrationsTestBundle() pathForResource:@"201406063106474_create_mb-demo-schema" ofType:@"sql"];
+    NSString *expectedPath = [BNGFMDBMigrationsTestBundle() pathForResource:@"201406063106474_create_mb-demo-schema" ofType:@"sql"];
     expect(migration.version).to.equal(201406063106474);
     expect(migration.name).to.equal(@"create_mb-demo-schema");
     expect(migration.path).to.equal(expectedPath);
@@ -194,13 +194,13 @@ static FMDatabase *FMDatabaseWithSchemaMigrationsTable()
 
 - (void)testNewDatabaseReturnsZeroForCurrentVersion
 {
-    FMDBMigrationManager *manager = [FMDBMigrationManager managerWithDatabaseAtPath:FMDBRandomDatabasePath() migrationsBundle:FMDBMigrationsTestBundle()];
+    BNGFMDBMigrationManager *manager = [BNGFMDBMigrationManager managerWithDatabaseAtPath:FMDBRandomDatabasePath() migrationsBundle:BNGFMDBMigrationsTestBundle()];
     expect(manager.currentVersion).to.equal(0);
 }
 
 - (void)testCreatingSchemaMigrationsTable
 {
-    FMDBMigrationManager *manager = [FMDBMigrationManager managerWithDatabaseAtPath:FMDBRandomDatabasePath() migrationsBundle:FMDBMigrationsTestBundle()];
+    BNGFMDBMigrationManager *manager = [BNGFMDBMigrationManager managerWithDatabaseAtPath:FMDBRandomDatabasePath() migrationsBundle:BNGFMDBMigrationsTestBundle()];
     expect(manager.hasMigrationsTable).to.beFalsy();
     NSError *error = nil;
     BOOL success = [manager createMigrationsTable:&error];
@@ -215,7 +215,7 @@ static FMDatabase *FMDatabaseWithSchemaMigrationsTable()
     [database executeUpdate:@"INSERT INTO schema_migrations(version) VALUES (?)", @31337];
     [database close];
     
-    FMDBMigrationManager *manager = [FMDBMigrationManager managerWithDatabaseAtPath:database.databasePath migrationsBundle:FMDBMigrationsTestBundle()];
+    BNGFMDBMigrationManager *manager = [BNGFMDBMigrationManager managerWithDatabaseAtPath:database.databasePath migrationsBundle:BNGFMDBMigrationsTestBundle()];
     expect(manager.currentVersion).to.equal(31337);
 }
 
@@ -225,7 +225,7 @@ static FMDatabase *FMDatabaseWithSchemaMigrationsTable()
     [database executeUpdate:@"INSERT INTO schema_migrations(version) VALUES (?)", @31337];
     [database close];
     
-    FMDBMigrationManager *manager = [FMDBMigrationManager managerWithDatabaseAtPath:database.databasePath migrationsBundle:FMDBMigrationsTestBundle()];
+    BNGFMDBMigrationManager *manager = [BNGFMDBMigrationManager managerWithDatabaseAtPath:database.databasePath migrationsBundle:BNGFMDBMigrationsTestBundle()];
     expect(manager.originVersion).to.equal(31337);
 }
 
@@ -236,7 +236,7 @@ static FMDatabase *FMDatabaseWithSchemaMigrationsTable()
     [database executeUpdate:@"INSERT INTO schema_migrations(version) VALUES (?)", @99999];
     [database close];
     
-    FMDBMigrationManager *manager = [FMDBMigrationManager managerWithDatabaseAtPath:database.databasePath migrationsBundle:FMDBMigrationsTestBundle()];
+    BNGFMDBMigrationManager *manager = [BNGFMDBMigrationManager managerWithDatabaseAtPath:database.databasePath migrationsBundle:BNGFMDBMigrationsTestBundle()];
     expect(manager.originVersion).to.equal(31337);
 }
 
@@ -247,19 +247,19 @@ static FMDatabase *FMDatabaseWithSchemaMigrationsTable()
     [database executeUpdate:@"INSERT INTO schema_migrations(version) VALUES (?)", @99999];
     [database close];
     
-    FMDBMigrationManager *manager = [FMDBMigrationManager managerWithDatabaseAtPath:database.databasePath migrationsBundle:FMDBMigrationsTestBundle()];
+    BNGFMDBMigrationManager *manager = [BNGFMDBMigrationManager managerWithDatabaseAtPath:database.databasePath migrationsBundle:BNGFMDBMigrationsTestBundle()];
     expect(manager.currentVersion).to.equal(99999);
 }
 
 - (void)testNewDatabaseReturnsZeroForOriginVersion
 {
-    FMDBMigrationManager *manager = [FMDBMigrationManager managerWithDatabaseAtPath:FMDBRandomDatabasePath() migrationsBundle:FMDBMigrationsTestBundle()];
+    BNGFMDBMigrationManager *manager = [BNGFMDBMigrationManager managerWithDatabaseAtPath:FMDBRandomDatabasePath() migrationsBundle:BNGFMDBMigrationsTestBundle()];
     expect(manager.originVersion).to.equal(0);
 }
 
 - (void)testNewDatabaseReturnsEmptyArrayForAppliedVersions
 {
-    FMDBMigrationManager *manager = [FMDBMigrationManager managerWithDatabaseAtPath:FMDBRandomDatabasePath() migrationsBundle:FMDBMigrationsTestBundle()];
+    BNGFMDBMigrationManager *manager = [BNGFMDBMigrationManager managerWithDatabaseAtPath:FMDBRandomDatabasePath() migrationsBundle:BNGFMDBMigrationsTestBundle()];
     expect(manager.appliedVersions).to.beNil();
 }
 
@@ -270,13 +270,13 @@ static FMDatabase *FMDatabaseWithSchemaMigrationsTable()
     [database executeUpdate:@"INSERT INTO schema_migrations(version) VALUES (?)", @99999];
     [database close];
     
-    FMDBMigrationManager *manager = [FMDBMigrationManager managerWithDatabaseAtPath:database.databasePath migrationsBundle:FMDBMigrationsTestBundle()];
+    BNGFMDBMigrationManager *manager = [BNGFMDBMigrationManager managerWithDatabaseAtPath:database.databasePath migrationsBundle:BNGFMDBMigrationsTestBundle()];
     expect(manager.appliedVersions).to.equal(@[ @31337, @99999 ]);
 }
 
 - (void)testPendingVersionsForNewDatabase
 {
-    FMDBMigrationManager *manager = [FMDBMigrationManager managerWithDatabaseAtPath:FMDBRandomDatabasePath() migrationsBundle:FMDBMigrationsTestBundle()];
+    BNGFMDBMigrationManager *manager = [BNGFMDBMigrationManager managerWithDatabaseAtPath:FMDBRandomDatabasePath() migrationsBundle:BNGFMDBMigrationsTestBundle()];
     expect(manager.pendingVersions).to.equal(@[@201406063106474, @201406063548463, @201499000000000]);
 }
 
@@ -286,7 +286,7 @@ static FMDatabase *FMDatabaseWithSchemaMigrationsTable()
     [database executeUpdate:@"INSERT INTO schema_migrations(version) VALUES (?)", @201406063106474];
     [database close];
     
-    FMDBMigrationManager *manager = [FMDBMigrationManager managerWithDatabaseAtPath:database.databasePath migrationsBundle:FMDBMigrationsTestBundle()];
+    BNGFMDBMigrationManager *manager = [BNGFMDBMigrationManager managerWithDatabaseAtPath:database.databasePath migrationsBundle:BNGFMDBMigrationsTestBundle()];
     expect(manager.pendingVersions).to.equal(@[ @201406063548463, @201499000000000 ]);
 }
 
@@ -298,13 +298,13 @@ static FMDatabase *FMDatabaseWithSchemaMigrationsTable()
     [database executeUpdate:@"INSERT INTO schema_migrations(version) VALUES (?)", @201499000000000];
     [database close];
     
-    FMDBMigrationManager *manager = [FMDBMigrationManager managerWithDatabaseAtPath:database.databasePath migrationsBundle:FMDBMigrationsTestBundle()];
+    BNGFMDBMigrationManager *manager = [BNGFMDBMigrationManager managerWithDatabaseAtPath:database.databasePath migrationsBundle:BNGFMDBMigrationsTestBundle()];
     expect(manager.pendingVersions).to.beEmpty();
 }
 
 - (void)testMigratingNewDatabaseToLatestVersion
 {
-    FMDBMigrationManager *manager = [FMDBMigrationManager managerWithDatabaseAtPath:FMDBRandomDatabasePath() migrationsBundle:FMDBMigrationsTestBundle()];
+    BNGFMDBMigrationManager *manager = [BNGFMDBMigrationManager managerWithDatabaseAtPath:FMDBRandomDatabasePath() migrationsBundle:BNGFMDBMigrationsTestBundle()];
     expect(manager.hasMigrationsTable).to.beFalsy();
     NSError *error = nil;
     BOOL success = [manager migrateDatabaseToVersion:UINT64_MAX progress:nil error:&error];
@@ -317,7 +317,7 @@ static FMDatabase *FMDatabaseWithSchemaMigrationsTable()
 - (void)testMigratingInMemoryDatabaseToLatestVersion
 {
     FMDatabase *database = [FMDatabase databaseWithPath:nil];
-    FMDBMigrationManager *manager = [FMDBMigrationManager managerWithDatabase:database migrationsBundle:FMDBMigrationsTestBundle()];
+    BNGFMDBMigrationManager *manager = [BNGFMDBMigrationManager managerWithDatabase:database migrationsBundle:BNGFMDBMigrationsTestBundle()];
     expect(manager.hasMigrationsTable).to.beFalsy();
     NSError *error = nil;
     BOOL success = [manager migrateDatabaseToVersion:UINT64_MAX progress:nil error:&error];
@@ -329,7 +329,7 @@ static FMDatabase *FMDatabaseWithSchemaMigrationsTable()
 
 - (void)testMigratingNewDatabaseToSpecificVersion
 {
-    FMDBMigrationManager *manager = [FMDBMigrationManager managerWithDatabaseAtPath:FMDBRandomDatabasePath() migrationsBundle:FMDBMigrationsTestBundle()];
+    BNGFMDBMigrationManager *manager = [BNGFMDBMigrationManager managerWithDatabaseAtPath:FMDBRandomDatabasePath() migrationsBundle:BNGFMDBMigrationsTestBundle()];
     expect(manager.hasMigrationsTable).to.beFalsy();
     NSError *error = nil;
     BOOL success = [manager migrateDatabaseToVersion:201406063106474 progress:nil error:&error];
@@ -344,7 +344,7 @@ static FMDatabase *FMDatabaseWithSchemaMigrationsTable()
 
 - (void)testThatMigrationCanBeCancelledViaProgressBlock
 {
-    FMDBMigrationManager *manager = [FMDBMigrationManager managerWithDatabaseAtPath:FMDBRandomDatabasePath() migrationsBundle:FMDBMigrationsTestBundle()];
+    BNGFMDBMigrationManager *manager = [BNGFMDBMigrationManager managerWithDatabaseAtPath:FMDBRandomDatabasePath() migrationsBundle:BNGFMDBMigrationsTestBundle()];
     expect(manager.hasMigrationsTable).to.beFalsy();
     NSError *error = nil;
     BOOL success = [manager migrateDatabaseToVersion:UINT64_MAX progress:^(NSProgress *progress) {
@@ -354,8 +354,8 @@ static FMDatabase *FMDatabaseWithSchemaMigrationsTable()
     } error:&error];
     expect(success).to.beFalsy();
     expect(error).notTo.beNil();
-    expect(error.domain).to.equal(FMDBMigrationManagerErrorDomain);
-    expect(error.code).to.equal(FMDBMigrationManagerErrorMigrationCancelled);
+    expect(error.domain).to.equal(BNGFMDBMigrationManagerErrorDomain);
+    expect(error.code).to.equal(BNGFMDBMigrationManagerErrorMigrationCancelled);
     expect(manager.hasMigrationsTable).to.beTruthy();
     expect(manager.currentVersion).to.equal(201406063106474);
 }
@@ -381,9 +381,9 @@ static FMDatabase *FMDatabaseWithSchemaMigrationsTable()
 
 - (void)testMigrationsFromBundleWithAlternateFileNames
 {
-    NSBundle *parentBundle = [NSBundle bundleForClass:NSClassFromString(@"FMDBMigrationManagerTests")];
+    NSBundle *parentBundle = [NSBundle bundleForClass:NSClassFromString(@"BNGFMDBMigrationManagerTests")];
     NSBundle *alternateNamesBundle = [NSBundle bundleWithPath:[parentBundle pathForResource:@"AlternateNamedMigrations" ofType:@"bundle"]];
-    FMDBMigrationManager *manager = [FMDBMigrationManager managerWithDatabaseAtPath:FMDBRandomDatabasePath() migrationsBundle:alternateNamesBundle];
+    BNGFMDBMigrationManager *manager = [BNGFMDBMigrationManager managerWithDatabaseAtPath:FMDBRandomDatabasePath() migrationsBundle:alternateNamesBundle];
     expect([manager.migrations valueForKey:@"name"]).to.equal(@[ @"CamelCaseShouldWork", [NSNull null], @"This Is Another Name", @"My Object Migration" ]);
     expect([manager.migrations valueForKey:@"version"]).to.equal(@[ @2, @12345, @201406063548463, @201499000000000 ]);
 }

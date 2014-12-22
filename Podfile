@@ -1,10 +1,10 @@
 xcodeproj 'Tests/FMDBMigrationManagerTests'
-workspace 'FMDBMigrationManager'
+workspace 'BNGFMDBMigrationManager'
 
 def import_pods
   pod 'Expecta', '~> 0.3.0'
   pod 'FMDB/standard'
-  pod 'FMDBMigrationManager', :path => '.'
+  pod 'BNGFMDBMigrationManager', :path => '.'
 end
 
 target :ios do

@@ -1,6 +1,6 @@
 //
-//  FMDBMigrationManager.h
-//  FMDBMigrationManager
+//  BNGFMDBMigrationManager.h
+//  BNGFMDBMigrationManager
 //
 //  Created by Blake Watters on 6/4/14.
 //  Copyright (c) 2014 Layer Inc. All rights reserved.
@@ -21,13 +21,13 @@
 #import <fmdb/FMDatabase.h>
 #import <fmdb/FMDatabaseQueue.h>
 
-@protocol FMDBMigrating;
+@protocol BNGFMDBMigrating;
 
 /**
- @abstract The `FMDBMigrationManager` class provides a simple, flexible interface for managing migrations for
+ @abstract The `BNGFMDBMigrationManager` class provides a simple, flexible interface for managing migrations for
  a SQLite database that is accessed via FMDB.
  */
-@interface FMDBMigrationManager : NSObject
+@interface BNGFMDBMigrationManager : NSObject
 
 ///-----------------------------------
 /// @name Creating a Migration Manager
@@ -51,7 +51,7 @@
 
 /**
  @abstract Determines whether the receiver will perform a search for dynamically defined migrations. Default: `YES`.
- @discussion When `YES` all classes will be enumerated to search for any that conform to the `FMDBMigrating` protocol.
+ @discussion When `YES` all classes will be enumerated to search for any that conform to the `BNGFMDBMigrating` protocol.
  */
 @property (nonatomic, assign) BOOL dynamicMigrationsEnabled;
 
@@ -90,10 +90,10 @@
 ///---------------------------
 
 /**
- @abstract Returns all migrations discoverable by the receiver. Each object returned conforms to the `FMDBMigrating` protocol. The
+ @abstract Returns all migrations discoverable by the receiver. Each object returned conforms to the `BNGFMDBMigrating` protocol. The
  array is returned in ascending order by version.
  @discussion The manager discovers migrations by analyzing all files that end in a .sql extension in the `migrationsBundle`
- and accumulating all classes that conform to the `FMDBMigrating` protocol. These migrations can then be sorted and applied
+ and accumulating all classes that conform to the `BNGFMDBMigrating` protocol. These migrations can then be sorted and applied
  to the target database.
  @note The list of migrations is memoized for efficiency.
  */
@@ -116,14 +116,14 @@
  @param version The version of the desired migration.
  @return A migration with the specified version or `nil` if none could be found.
  */
-- (id<FMDBMigrating>)migrationForVersion:(uint64_t)version;
+- (id<BNGFMDBMigrating>)migrationForVersion:(uint64_t)version;
 
 /**
  @abstract Returns a migration object with a given name or `nil` if none could be found.
  @param name The name of the desired migration.
  @return A migration with the specified named or `nil` if none could be found.
  */
-- (id<FMDBMigrating>)migrationForName:(NSString *)name;
+- (id<BNGFMDBMigrating>)migrationForName:(NSString *)name;
 
 ///------------------------------------
 /// @name Managing the Migrations Table
@@ -136,7 +136,7 @@
 @property (nonatomic, readonly) BOOL hasMigrationsTable;
 
 /**
- @abstract Creates the `schema_migrations` table used by `FMDBMigrationManager` to maintain an index of applied migrations.
+ @abstract Creates the `schema_migrations` table used by `BNGFMDBMigrationManager` to maintain an index of applied migrations.
  @param error A pointer to an error object that is set upon failure to create the migrations table.
  @return A Boolean value that indicates if the creation of the migrations table was successful.
  */
@@ -167,11 +167,11 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
- @abstract The `FMDBMigrating` protocol is adopted by classes that wish to provide migration of SQLite databases accessed via FMDB. The
- `FMDBMigrationManager` project ships with a single concrete implementation in the `FMDBFileMigration` class. Non file backed 
- migrations can be implemented by conforming to the `FMDBMigrating` protocol.
+ @abstract The `BNGFMDBMigrating` protocol is adopted by classes that wish to provide migration of SQLite databases accessed via FMDB. The
+ `BNGFMDBMigrationManager` project ships with a single concrete implementation in the `FMDBFileMigration` class. Non file backed 
+ migrations can be implemented by conforming to the `BNGFMDBMigrating` protocol.
  */
-@protocol FMDBMigrating <NSObject>
+@protocol BNGFMDBMigrating <NSObject>
 
 ///-------------------------------------
 /// @name Accessing Migration Properties
@@ -195,7 +195,7 @@
 
 /**
  @abstract Tells the receiver to apply its changes to the given database and return a Boolean value indicating success or failure.
- @discussion The `FMDBMigrationManager` manages a transaction while migrations are being applied. Should any call to `migrateDatabase:error` return `NO`,
+ @discussion The `BNGFMDBMigrationManager` manages a transaction while migrations are being applied. Should any call to `migrateDatabase:error` return `NO`,
  then the transaction is rolled back.
  @param database The database on which to apply the migration.
  @param error A pointer to an error object to set should the transaction fail.
@@ -206,11 +206,11 @@
 @end
 
 /**
- @abstract The `FMDBFileMigration` class provides a concrete implementation of the `FMDBMigrating` protocol that models
+ @abstract The `FMDBFileMigration` class provides a concrete implementation of the `BNGFMDBMigrating` protocol that models
  a migration stored on disk a SQL file. The filename encodes the name and version of the migration. Conformant filenames are
  of the form `[version]_[name].sql`. 
  */
-@interface FMDBFileMigration : NSObject <FMDBMigrating>
+@interface FMDBFileMigration : NSObject <BNGFMDBMigrating>
 
 ///--------------------------------
 /// @name Creating a File Migration
@@ -238,30 +238,30 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
- @abstract The domain for errors created by `FMDBMigrationManager`.
+ @abstract The domain for errors created by `BNGFMDBMigrationManager`.
  */
-extern NSString *const FMDBMigrationManagerErrorDomain;
+extern NSString *const BNGFMDBMigrationManagerErrorDomain;
 
 /**
  @abstract A key for an `NSNumber` object in the `userInfo` of an `NSProgress` object specifying the version 
  that the database was just migrated to.
  @see `migrateDatabase:error:`
  */
-extern NSString *const FMDBMigrationManagerProgressVersionUserInfoKey;
+extern NSString *const BNGFMDBMigrationManagerProgressVersionUserInfoKey;
 
 /**
- @abstract A key for an `id<FMDBMigrating>` object in the `userInfo` of an `NSProgress` object that identifies
+ @abstract A key for an `id<BNGFMDBMigrating>` object in the `userInfo` of an `NSProgress` object that identifies
  the migration that was just applied to the database.
  @see `migrateDatabase:error:`
  */
-extern NSString *const FMDBMigrationManagerProgressMigrationUserInfoKey;
+extern NSString *const BNGFMDBMigrationManagerProgressMigrationUserInfoKey;
 
 /**
- @abstract Enumerates the errors returned by FMDBMigrationManager
+ @abstract Enumerates the errors returned by BNGFMDBMigrationManager
  */
-typedef NS_ENUM(NSUInteger, FMDBMigrationManagerError) {
+typedef NS_ENUM(NSUInteger, BNGFMDBMigrationManagerError) {
     /// Indicates that migration was halted due to cancellation
-    FMDBMigrationManagerErrorMigrationCancelled  = 1
+    BNGFMDBMigrationManagerErrorMigrationCancelled  = 1
 };
 
 /**

@@ -1,6 +1,6 @@
 //
-//  FMDBMigrationManager.m
-//  FMDBMigrationManager
+//  BNGFMDBMigrationManager.m
+//  BNGFMDBMigrationManager
 //
 //  Created by Blake Watters on 6/4/14.
 //  Copyright (c) 2014 Layer Inc. All rights reserved.
@@ -18,23 +18,23 @@
 //  limitations under the License.
 //
 
-#import "FMDBMigrationManager.h"
+#import "BNGFMDBMigrationManager.h"
 #import <objc/runtime.h>
 
 // Public Constants
-NSString *const FMDBMigrationManagerErrorDomain = @"com.layer.FMDBMigrationManager.errors";
-NSString *const FMDBMigrationManagerProgressVersionUserInfoKey = @"version";
-NSString *const FMDBMigrationManagerProgressMigrationUserInfoKey = @"migration";
+NSString *const BNGFMDBMigrationManagerErrorDomain = @"com.layer.BNGFMDBMigrationManager.errors";
+NSString *const BNGFMDBMigrationManagerProgressVersionUserInfoKey = @"version";
+NSString *const BNGFMDBMigrationManagerProgressMigrationUserInfoKey = @"migration";
 
 // Private Constants
-static NSString *const FMDBMigrationFilenameRegexString = @"^(\\d+)_?((?<=_)[\\w\\s-]+)?(?<!_)\\.sql$";
+static NSString *const BNGFMDBMigrationFilenameRegexString = @"^(\\d+)_?((?<=_)[\\w\\s-]+)?(?<!_)\\.sql$";
 
 BOOL FMDBIsMigrationAtPath(NSString *path)
 {
     static NSRegularExpression *migrationRegex;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        migrationRegex = [NSRegularExpression regularExpressionWithPattern:FMDBMigrationFilenameRegexString options:0 error:nil];
+        migrationRegex = [NSRegularExpression regularExpressionWithPattern:BNGFMDBMigrationFilenameRegexString options:0 error:nil];
     });
     NSString *filename = [path lastPathComponent];
     return [migrationRegex rangeOfFirstMatchInString:filename options:0 range:NSMakeRange(0, [filename length])].location != NSNotFound;
@@ -59,13 +59,13 @@ static NSArray *FMDBClassesConformingToProtocol(Protocol *protocol)
     return conformingClasses;
 }
 
-@interface FMDBMigrationManager ()
+@interface BNGFMDBMigrationManager ()
 @property (nonatomic) FMDatabase *database;
 @property (nonatomic, assign) BOOL shouldCloseOnDealloc;
 @property (nonatomic) NSArray *migrations;
 @end
 
-@implementation FMDBMigrationManager
+@implementation BNGFMDBMigrationManager
 
 + (instancetype)managerWithDatabaseAtPath:(NSString *)path migrationsBundle:(NSBundle *)bundle
 {
@@ -183,7 +183,7 @@ static NSArray *FMDBClassesConformingToProtocol(Protocol *protocol)
     if (_migrations) return _migrations;
     
     NSArray *migrationPaths = [self.migrationsBundle pathsForResourcesOfType:@"sql" inDirectory:nil];
-    NSRegularExpression *migrationRegex = [NSRegularExpression regularExpressionWithPattern:FMDBMigrationFilenameRegexString options:0 error:nil];
+    NSRegularExpression *migrationRegex = [NSRegularExpression regularExpressionWithPattern:BNGFMDBMigrationFilenameRegexString options:0 error:nil];
     NSMutableArray *migrations = [NSMutableArray new];
     for (NSString *path in migrationPaths) {
         NSString *filename = [path lastPathComponent];
@@ -193,12 +193,12 @@ static NSArray *FMDBClassesConformingToProtocol(Protocol *protocol)
         }
     }
     
-    // Find all classes implementing FMDBMigrating
+    // Find all classes implementing BNGFMDBMigrating
     if (self.dynamicMigrationsEnabled) {
-        NSArray *conformingClasses = FMDBClassesConformingToProtocol(@protocol(FMDBMigrating));
+        NSArray *conformingClasses = FMDBClassesConformingToProtocol(@protocol(BNGFMDBMigrating));
         for (Class migrationClass in conformingClasses) {
             if ([migrationClass isSubclassOfClass:[FMDBFileMigration class]]) continue;
-            id<FMDBMigrating> migration = [migrationClass new];
+            id<BNGFMDBMigrating> migration = [migrationClass new];
             [migrations addObject:migration];
         }
     }
@@ -206,17 +206,17 @@ static NSArray *FMDBClassesConformingToProtocol(Protocol *protocol)
     return _migrations;
 }
 
-- (id<FMDBMigrating>)migrationForVersion:(uint64_t)version
+- (id<BNGFMDBMigrating>)migrationForVersion:(uint64_t)version
 {
-    for (id<FMDBMigrating>migration in [self migrations]) {
+    for (id<BNGFMDBMigrating>migration in [self migrations]) {
         if (migration.version == version) return migration;
     }
     return nil;
 }
 
-- (id<FMDBMigrating>)migrationForName:(NSString *)name
+- (id<BNGFMDBMigrating>)migrationForName:(NSString *)name
 {
-    for (id<FMDBMigrating>migration in [self migrations]) {
+    for (id<BNGFMDBMigrating>migration in [self migrations]) {
         if ([migration.name isEqualToString:name]) return migration;
     }
     return nil;
@@ -235,7 +235,7 @@ static NSArray *FMDBClassesConformingToProtocol(Protocol *protocol)
             [self.database commit];
             break;
         }
-        id<FMDBMigrating> migration = [self migrationForVersion:migrationVersion];
+        id<BNGFMDBMigrating> migration = [self migrationForVersion:migrationVersion];
         success = [migration migrateDatabase:self.database error:error];
         if (!success) {
             [self.database rollback];
@@ -250,14 +250,14 @@ static NSArray *FMDBClassesConformingToProtocol(Protocol *protocol)
         // Emit progress tracking and check for cancellation
         progress.completedUnitCount++;
         if (progressBlock) {
-            [progress setUserInfoObject:@(migrationVersion) forKey:FMDBMigrationManagerProgressVersionUserInfoKey];
-            [progress setUserInfoObject:migration forKey:FMDBMigrationManagerProgressMigrationUserInfoKey];
+            [progress setUserInfoObject:@(migrationVersion) forKey:BNGFMDBMigrationManagerProgressVersionUserInfoKey];
+            [progress setUserInfoObject:migration forKey:BNGFMDBMigrationManagerProgressMigrationUserInfoKey];
             progressBlock(progress);
             if (progress.cancelled) {
                 success = NO;
                 
                 NSDictionary *userInfo = @{ NSLocalizedDescriptionKey: @"Migration was halted due to cancellation." };
-                if (error) *error = [NSError errorWithDomain:FMDBMigrationManagerErrorDomain code:FMDBMigrationManagerErrorMigrationCancelled userInfo:userInfo];
+                if (error) *error = [NSError errorWithDomain:BNGFMDBMigrationManagerErrorDomain code:BNGFMDBMigrationManagerErrorMigrationCancelled userInfo:userInfo];
                 [self.database rollback];
                 break;
             }
@@ -270,12 +270,12 @@ static NSArray *FMDBClassesConformingToProtocol(Protocol *protocol)
 
 @end
 
-static BOOL FMDBMigrationScanMetadataFromPath(NSString *path, uint64_t *version, NSString **name)
+static BOOL BNGFMDBMigrationScanMetadataFromPath(NSString *path, uint64_t *version, NSString **name)
 {
     NSError *error = nil;
-    NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:FMDBMigrationFilenameRegexString options:0 error:&error];
+    NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:BNGFMDBMigrationFilenameRegexString options:0 error:&error];
     if (!regex) {
-        NSLog(@"[FMDBMigration] Failed constructing regex: %@", error);
+        NSLog(@"[BNGFMDBMigration] Failed constructing regex: %@", error);
         return NO;
     }
     NSString *migrationName = [path lastPathComponent];
@@ -305,7 +305,7 @@ static BOOL FMDBMigrationScanMetadataFromPath(NSString *path, uint64_t *version,
 {
     NSString *name;
     uint64_t version;
-    if (!FMDBMigrationScanMetadataFromPath(path, &version, &name)) return nil;
+    if (!BNGFMDBMigrationScanMetadataFromPath(path, &version, &name)) return nil;
     
     self = [super init];
     if (self) {
