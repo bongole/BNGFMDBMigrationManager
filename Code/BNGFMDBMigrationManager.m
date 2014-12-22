@@ -222,11 +222,12 @@ static NSArray *FMDBClassesConformingToProtocol(Protocol *protocol)
     return nil;
 }
 
-- (BOOL)migrateDatabaseToVersion:(uint64_t)version progress:(void (^)(NSProgress *progress))progressBlock error:(NSError **)error
+- (BOOL)migrateDatabaseToVersion:(uint64_t)version progress:(void (^)(uint64_t completedUnitCount, int64_t totalUnitCount, NSDictionary *userInfo, BOOL *cancelled))progressBlock error:(NSError **)error
 {
     BOOL success = YES;
     NSArray *pendingVersions = self.pendingVersions;
-    NSProgress *progress = [NSProgress progressWithTotalUnitCount:[pendingVersions count]];
+    uint64_t totalUnitCount = [pendingVersions count];
+    uint64_t completedUnitCount = 0;
     for (NSNumber *migrationVersionNumber in pendingVersions) {
         [self.database beginTransaction];
         
@@ -248,12 +249,15 @@ static NSArray *FMDBClassesConformingToProtocol(Protocol *protocol)
         }
         
         // Emit progress tracking and check for cancellation
-        progress.completedUnitCount++;
+        completedUnitCount++;
         if (progressBlock) {
-            [progress setUserInfoObject:@(migrationVersion) forKey:BNGFMDBMigrationManagerProgressVersionUserInfoKey];
-            [progress setUserInfoObject:migration forKey:BNGFMDBMigrationManagerProgressMigrationUserInfoKey];
-            progressBlock(progress);
-            if (progress.cancelled) {
+            NSDictionary *userInfo = @{
+                                       BNGFMDBMigrationManagerProgressVersionUserInfoKey: @(migrationVersion),
+                                       BNGFMDBMigrationManagerProgressMigrationUserInfoKey: migration
+                                       };
+            BOOL cancelled = NO;
+            progressBlock(completedUnitCount, totalUnitCount, userInfo, &cancelled);
+            if (cancelled) {
                 success = NO;
                 
                 NSDictionary *userInfo = @{ NSLocalizedDescriptionKey: @"Migration was halted due to cancellation." };
@@ -282,8 +286,7 @@ static BOOL BNGFMDBMigrationScanMetadataFromPath(NSString *path, uint64_t *versi
     NSTextCheckingResult *result = [regex firstMatchInString:migrationName options:0 range:NSMakeRange(0, [migrationName length])];
     if ([result numberOfRanges] != 3) return NO;
     NSString *versionString = [migrationName substringWithRange:[result rangeAtIndex:1]];
-    NSScanner *scanner = [NSScanner scannerWithString:versionString];
-    [scanner scanUnsignedLongLong:version];
+    *version = strtoull([versionString UTF8String], NULL, 0);
     NSRange range = [result rangeAtIndex:2];
     *name = (range.length) ? [migrationName substringWithRange:[result rangeAtIndex:2]] : nil;
     return YES;

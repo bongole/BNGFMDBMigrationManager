@@ -160,7 +160,7 @@
  @param error A pointer to an error object that is set upon failure to complete the migrations.
  @return `YES` if migration was successful, else `NO`.
  */
-- (BOOL)migrateDatabaseToVersion:(uint64_t)version progress:(void (^)(NSProgress *progress))progressBlock error:(NSError **)error;
+- (BOOL)migrateDatabaseToVersion:(uint64_t)version progress:(void (^)(uint64_t completedUnitCount, int64_t totalUnitCount, NSDictionary *userInfo, BOOL *cancelled))progressBlock error:(NSError **)error;
 
 @end
 
